@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>予実管理アプリ</title>
+    <title>予実管理アプリ with Gemini</title>
 
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,12 +18,13 @@
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
 
+    <!-- Marked.js for rendering Markdown from Gemini -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
-        /* v-cloakディレクティブは、Vueインスタンスがコンパイルを完了するまで、マスタッシュバインディングを非表示にします */
         [v-cloak] {
             display: none;
         }
-        /* シンプルなローディングスピナーのアニメーション */
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -35,6 +36,23 @@
             height: 40px;
             animation: spin 1s linear infinite;
         }
+        /* Geminiレスポンス用のスタイル */
+        .gemini-response h3 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .gemini-response ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+         .gemini-response p {
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans">
@@ -42,12 +60,15 @@
         <!-- Header -->
         <header class="bg-white shadow-md">
             <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <div class="flex items-center gap-3">
+                 <div class="flex items-center gap-3">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
-                    <h1 class="text-xl font-bold text-gray-800">予実管理アプリ</h1>
+                    <h1 class="text-xl font-bold text-gray-800">予実管理 with Gemini</h1>
                 </div>
-                <div v-if="isLoggedIn">
-                    <button @click="handleSignoutClick" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2">
+                <div>
+                     <button @click="isSettingsModalOpen = true" class="text-gray-500 hover:text-indigo-600 mr-4" title="設定">
+                        <lucide-vue-next.Settings :size="20" />
+                    </button>
+                    <button v-if="isLoggedIn" @click="handleSignoutClick" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center gap-2">
                         <lucide-vue-next.LogOut :size="18" />
                         <span>ログアウト</span>
                     </button>
@@ -56,8 +77,20 @@
         </header>
 
         <main class="flex-grow container mx-auto p-4 md:p-6">
+            <!-- API Key Setup View -->
+            <div v-if="!areApiKeysSet" class="flex items-center justify-center h-full pt-16">
+                 <div class="text-center bg-white p-8 rounded-xl shadow-lg max-w-lg w-full">
+                    <h2 class="text-2xl font-bold mb-2">初期設定へようこそ</h2>
+                    <p class="text-gray-600 mb-6">このアプリを使用するには、いくつかのAPIキーが必要です。キーはあなたのブラウザにのみ保存され、外部に送信されることはありません。</p>
+                    <button @click="isSettingsModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-200 w-full flex items-center justify-center gap-3">
+                         <lucide-vue-next.Settings :size="20" />
+                        <span>APIキーを設定する</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Login View -->
-            <div v-if="!isLoggedIn" class="flex items-center justify-center h-full pt-16">
+            <div v-else-if="!isLoggedIn" class="flex items-center justify-center h-full pt-16">
                 <div class="text-center bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
                     <h2 class="text-2xl font-bold mb-2">Googleアカウントで始めよう</h2>
                     <p class="text-gray-600 mb-6">カレンダーの予定を読み込んで、一日の時間の使い方を可視化します。</p>
@@ -65,447 +98,366 @@
                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
                         <span>Googleでログイン</span>
                     </button>
-                    <p class="text-xs text-gray-500 mt-4">カレンダーの読み取り権限のみを要求します。</p>
                 </div>
             </div>
 
             <!-- Main Application View -->
             <div v-else>
-                <!-- Date Navigation and Controls -->
-                <div class="bg-white p-4 rounded-xl shadow-md mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <!-- Controls -->
+                <div class="bg-white p-4 rounded-xl shadow-md mb-6 flex flex-col md:flex-row justify-between items-center gap-4 flex-wrap">
                     <div class="flex items-center gap-4">
                         <button @click="changeDay(-1)" class="p-2 rounded-full hover:bg-gray-200 transition-colors"><lucide-vue-next.ChevronLeft :size="24" /></button>
                         <h2 class="text-xl md:text-2xl font-bold w-48 text-center">{{ formattedDate }}</h2>
                         <button @click="changeDay(1)" class="p-2 rounded-full hover:bg-gray-200 transition-colors"><lucide-vue-next.ChevronRight :size="24" /></button>
                         <button @click="changeDay(0)" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors text-sm">今日</button>
                     </div>
-                    <div class="flex items-center gap-4">
+                     <div class="flex items-center gap-2 md:gap-4 flex-wrap justify-center">
+                        <button @click="getDailyReflection" :disabled="isLoading || eventsWithActuals.length === 0" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm disabled:bg-gray-400 disabled:cursor-not-allowed">
+                            <lucide-vue-next.Sparkles :size="16" />
+                            <span>今日の振り返り (AI)</span>
+                        </button>
                         <button @click="fetchEvents" :disabled="isLoading" class="bg-white border border-indigo-500 text-indigo-500 hover:bg-indigo-50 font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm">
                             <lucide-vue-next.RefreshCw :size="16" :class="{'animate-spin': isLoading}" />
                             <span>更新</span>
                         </button>
                          <button @click="openUnplannedTaskModal" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm">
                             <lucide-vue-next.Plus :size="16" />
-                            <span>予定外タスクを追加</span>
+                            <span>予定外タスク</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Loading State -->
-                <div v-if="isLoading" class="flex justify-center items-center py-16">
-                    <div class="loader"></div>
-                </div>
-                
-                <!-- Error State -->
+                <!-- Main Content -->
+                <div v-if="isLoading" class="flex justify-center items-center py-16"><div class="loader"></div></div>
                 <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
-                    <strong class="font-bold">エラー: </strong>
-                    <span class="block sm:inline">{{ error }}</span>
+                    <strong class="font-bold">エラー: </strong><span class="block sm:inline">{{ error }}</span>
                 </div>
-
-                <!-- Event List -->
                 <div v-if="!isLoading && !error">
-                    <div v-if="eventsWithActuals.length > 0" class="space-y-4">
+                     <div v-if="eventsWithActuals.length > 0" class="space-y-4">
+                        <!-- Event List (same as before) -->
                         <div v-for="event in eventsWithActuals" :key="event.id" class="bg-white rounded-xl shadow-md p-4 flex flex-col md:flex-row items-start md:items-center gap-4 transition-all duration-300">
-                            <!-- Time -->
                             <div class="flex-shrink-0 w-full md:w-32 text-center md:text-left border-b md:border-b-0 md:border-r pb-2 md:pb-0 md:pr-4 border-gray-200">
                                 <p class="font-bold text-indigo-600">{{ event.isAllDay ? '終日' : formatTime(event.start) + ' - ' + formatTime(event.end) }}</p>
                             </div>
-
-                            <!-- Title and Memo -->
                             <div class="flex-grow">
                                 <p class="font-semibold text-gray-800">{{ event.summary }}</p>
                                 <p v-if="event.actual && event.actual.memo" class="text-sm text-gray-600 mt-1 pl-2 border-l-2 border-indigo-200">
                                    <lucide-vue-next.MessageSquare :size="14" class="inline-block mr-1" /> {{ event.actual.memo }}
                                 </p>
                             </div>
-                            
-                            <!-- Unplanned Task Badge -->
                             <div v-if="event.isUnplanned" class="flex-shrink-0">
-                                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">
-                                    予定外
-                                </span>
+                                <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">予定外</span>
                             </div>
-
-                            <!-- Action Buttons -->
                             <div class="flex-shrink-0 flex items-center gap-3 self-end md:self-center">
-                                <button @click="saveActual(event.id, 'completed', event.isUnplanned)" :class="['p-2 rounded-full transition-colors', event.actual && event.actual.status === 'completed' ? 'bg-green-500 text-white' : 'bg-gray-200 hover:bg-green-200']">
-                                    <lucide-vue-next.Check :size="20" />
-                                </button>
-                                <button @click="openMemoModal(event.id, event.actual ? event.actual.memo : '', event.isUnplanned)" :class="['p-2 rounded-full transition-colors', event.actual && event.actual.status === 'not_done' ? 'bg-red-500 text-white' : 'bg-gray-200 hover:bg-red-200']">
-                                    <lucide-vue-next.X :size="20" />
-                                </button>
+                                <button @click="saveActual(event.id, 'completed', event.isUnplanned)" :class="['p-2 rounded-full transition-colors', event.actual && event.actual.status === 'completed' ? 'bg-green-500 text-white' : 'bg-gray-200 hover:bg-green-200']"><lucide-vue-next.Check :size="20" /></button>
+                                <button @click="openMemoModal(event.id, event.actual ? event.actual.memo : '', event.isUnplanned)" :class="['p-2 rounded-full transition-colors', event.actual && event.actual.status === 'not_done' ? 'bg-red-500 text-white' : 'bg-gray-200 hover:bg-red-200']"><lucide-vue-next.X :size="20" /></button>
                             </div>
                         </div>
                     </div>
-                     <!-- No Events State -->
                     <div v-else class="text-center py-16 bg-white rounded-xl shadow-md">
-                        <lucide-vue-next.CalendarCheck2 :size="48" class="mx-auto text-gray-400" />
-                        <p class="mt-4 text-lg text-gray-600">この日の予定はありません。</p>
-                        <p class="text-sm text-gray-500">カレンダーに予定を追加するか、「予定外タスクを追加」してください。</p>
+                        <lucide-vue-next.CalendarCheck2 :size="48" class="mx-auto text-gray-400" /><p class="mt-4 text-lg text-gray-600">この日の予定はありません。</p>
                     </div>
                 </div>
             </div>
         </main>
         
-        <!-- Footer -->
         <footer class="text-center py-4 text-sm text-gray-500">
-            <p>&copy; {{ new Date().getFullYear() }} 予実管理アプリ. All Rights Reserved.</p>
+            <p>&copy; {{ new Date().getFullYear() }} 予実管理アプリ with Gemini. All Rights Reserved.</p>
         </footer>
 
-        <!-- Memo Input Modal -->
+        <!-- Memo Input Modal (same as before) -->
         <div v-if="isMemoModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
-                <h3 class="text-lg font-bold mb-4">実績の記録</h3>
-                <p class="mb-2 text-sm text-gray-600">実施しなかった理由や、代わりに行ったことを記録できます。</p>
-                <textarea v-model="currentMemo" rows="4" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="例：急な打ち合わせが入ったため"></textarea>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button @click="closeMemoModal" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">キャンセル</button>
-                    <button @click="saveMemo" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">保存</button>
+             <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg"><h3 class="text-lg font-bold mb-4">実績の記録</h3><p class="mb-2 text-sm text-gray-600">実施しなかった理由や、代わりに行ったことを記録できます。</p><textarea v-model="currentMemo" rows="4" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="例：急な打ち合わせが入ったため"></textarea><div class="mt-6 flex justify-end gap-3"><button @click="closeMemoModal" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">キャンセル</button><button @click="saveMemo" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">保存</button></div></div>
+        </div>
+        
+        <!-- Unplanned Task Modal (same as before) -->
+        <div v-if="isUnplannedTaskModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+             <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg"><h3 class="text-lg font-bold mb-4">予定外タスクの追加</h3><div class="space-y-4"><div><label for="taskTitle" class="block text-sm font-medium text-gray-700">タスク内容</label><input type="text" id="taskTitle" v-model="unplannedTask.summary" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="例：資料作成"></div><div><label for="taskTime" class="block text-sm font-medium text-gray-700">実施時間</label><input type="time" id="taskTime" v-model="unplannedTask.time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></div></div><div class="mt-6 flex justify-end gap-3"><button @click="isUnplannedTaskModalOpen = false" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">キャンセル</button><button @click="addUnplannedTask" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">追加</button></div></div>
+        </div>
+
+        <!-- NEW: API Key Settings Modal -->
+        <div v-if="isSettingsModalOpen" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg transform transition-all">
+                <h3 class="text-xl font-bold mb-4">APIキー設定</h3>
+                <div class="space-y-4 text-sm">
+                    <div>
+                        <label for="geminiApiKey" class="font-semibold text-gray-700 block mb-1">Gemini API Key</label>
+                        <input type="password" id="geminiApiKey" v-model="apiKeys.gemini" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Gemini APIキーを入力">
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-600 hover:underline text-xs">Gemini APIキーの取得方法</a>
+                    </div>
+                    <div>
+                        <label for="googleApiKey" class="font-semibold text-gray-700 block mb-1">Google Calendar API Key</label>
+                        <input type="password" id="googleApiKey" v-model="apiKeys.google" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Google Calendar APIキーを入力">
+                    </div>
+                     <div>
+                        <label for="googleClientId" class="font-semibold text-gray-700 block mb-1">Google Client ID</label>
+                        <input type="password" id="googleClientId" v-model="apiKeys.clientId" class="w-full p-2 border border-gray-300 rounded-lg" placeholder="Google Client IDを入力">
+                         <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-indigo-600 hover:underline text-xs">Google APIキーとクライアントIDの取得方法</a>
+                    </div>
+                </div>
+                 <div class="mt-6 flex justify-end gap-3">
+                    <button @click="isSettingsModalOpen = false" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg">キャンセル</button>
+                    <button @click="saveApiKeys" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">保存して再読込</button>
                 </div>
             </div>
         </div>
         
-        <!-- Unplanned Task Modal -->
-        <div v-if="isUnplannedTaskModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg">
-                <h3 class="text-lg font-bold mb-4">予定外タスクの追加</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label for="taskTitle" class="block text-sm font-medium text-gray-700">タスク内容</label>
-                        <input type="text" id="taskTitle" v-model="unplannedTask.summary" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="例：資料作成">
-                    </div>
-                     <div>
-                        <label for="taskTime" class="block text-sm font-medium text-gray-700">実施時間</label>
-                        <input type="time" id="taskTime" v-model="unplannedTask.time" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </div>
+        <!-- NEW: Gemini Reflection Modal -->
+        <div v-if="isGeminiModalOpen" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] flex flex-col transform transition-all">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <lucide-vue-next.Sparkles :size="22" class="text-purple-600" />
+                        AIによる今日の振り返り
+                    </h3>
+                    <button @click="isGeminiModalOpen = false" class="text-gray-500 hover:text-gray-800"><lucide-vue-next.X :size="24" /></button>
                 </div>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button @click="isUnplannedTaskModalOpen = false" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition-colors">キャンセル</button>
-                    <button @click="addUnplannedTask" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">追加</button>
+                <div class="overflow-y-auto flex-grow pr-2">
+                    <div v-if="isGeminiLoading" class="flex flex-col items-center justify-center h-48">
+                        <div class="loader"></div>
+                        <p class="mt-4 text-gray-600">AIが今日の活動を分析中です...</p>
+                    </div>
+                    <div v-else-if="geminiError" class="bg-red-100 text-red-700 p-4 rounded-lg">
+                        <p><strong>エラー:</strong> {{ geminiError }}</p>
+                    </div>
+                    <div v-else v-html="formattedGeminiResponse" class="gemini-response prose prose-indigo"></div>
                 </div>
             </div>
         </div>
+
     </div>
 
     <script type="module">
         const { createApp, ref, onMounted, computed, reactive } = Vue;
         
-        // Vueアプリのロジック
         const app = createApp({
             setup() {
-                // =================================================================
-                // 重要: 以下の情報をご自身のものに置き換えてください
-                // Google Cloud ConsoleでAPIキーとOAuth 2.0クライアントIDを取得してください
-                // https://console.cloud.google.com/
-                // =================================================================
-                const API_KEY = 'AIzaSyBBt9F9xs-Fn1WxMlHCByZWWemwux-k47A'; // ここにAPIキーを入力
-                const CLIENT_ID = '1074616537468-4stafq5bc28rc3gshvmla7f8bmd48d55.apps.googleusercontent.com'; // ここにクライアントIDを入力
-
-                // Google Calendar APIのスコープ (読み取り専用)
+                // --- API Key & Config ---
                 const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+                const apiKeys = reactive({
+                    gemini: '',
+                    google: '',
+                    clientId: '',
+                });
+                const areApiKeysSet = ref(false);
 
-                // --- リアクティブな状態管理 ---
+                // --- App State ---
                 const isLoggedIn = ref(false);
                 const events = ref([]);
-                const actuals = ref({}); // { eventId: { status: 'completed'/'not_done', memo: '' } }
+                const actuals = ref({});
                 const currentDate = ref(new Date());
                 const isLoading = ref(false);
                 const error = ref(null);
                 
+                // --- Modal State ---
+                const isSettingsModalOpen = ref(false);
                 const isMemoModalOpen = ref(false);
+                const isUnplannedTaskModalOpen = ref(false);
+                const isGeminiModalOpen = ref(false);
+
+                // --- Memo/Unplanned State ---
                 const currentEventId = ref(null);
                 const currentMemo = ref('');
                 const currentEventIsUnplanned = ref(false);
+                const unplannedTask = reactive({ summary: '', time: '12:00' });
 
-                const isUnplannedTaskModalOpen = ref(false);
-                const unplannedTask = reactive({
-                    summary: '',
-                    time: '12:00'
-                });
+                // --- Gemini State ---
+                const isGeminiLoading = ref(false);
+                const geminiResponse = ref('');
+                const geminiError = ref(null);
 
                 let tokenClient;
 
-                // --- Google API初期化関連 ---
-
+                // --- Lifecycle & Initialization ---
                 onMounted(() => {
-                    // gapi (Google API Client Library) の読み込み
-                    gapi.load('client', initializeGapiClient);
-                    
-                    // gsi (Google Identity Services) の読み込み
-                    tokenClient = google.accounts.oauth2.initTokenClient({
-                        client_id: CLIENT_ID,
-                        scope: SCOPES,
-                        callback: (tokenResponse) => {
-                            if (tokenResponse && tokenResponse.access_token) {
-                                gapi.client.setToken(tokenResponse);
-                                isLoggedIn.value = true;
-                                fetchEvents();
-                            } else {
-                                error.value = 'Google認証に失敗しました。';
-                            }
-                        },
-                    });
-                    
-                    // localStorageから実績データを読み込む
+                    loadApiKeys();
+                    if (areApiKeysSet.value) {
+                        gapi.load('client', initializeGapiClient);
+                        initializeGsiClient();
+                    }
                     loadActuals();
                 });
                 
-                async function initializeGapiClient() {
-                    await gapi.client.init({
-                        apiKey: API_KEY,
-                        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-                    });
+                function loadApiKeys() {
+                    const savedKeys = localStorage.getItem('yojitsuAppApiKeys');
+                    if (savedKeys) {
+                        const parsedKeys = JSON.parse(savedKeys);
+                        if (parsedKeys.gemini && parsedKeys.google && parsedKeys.clientId) {
+                            apiKeys.gemini = parsedKeys.gemini;
+                            apiKeys.google = parsedKeys.google;
+                            apiKeys.clientId = parsedKeys.clientId;
+                            areApiKeysSet.value = true;
+                        }
+                    }
                 }
                 
-                // --- 認証関連の関数 ---
-
-                function handleAuthClick() {
-                    // APIキーやクライアントIDが設定されているかチェック
-                    if (API_KEY === 'YOUR_API_KEY' || CLIENT_ID === 'YOUR_CLIENT_ID') {
-                        error.value = 'APIキーまたはクライアントIDが設定されていません。コード内の指示に従って設定してください。';
-                        alert(error.value);
+                function saveApiKeys() {
+                    if (!apiKeys.gemini || !apiKeys.google || !apiKeys.clientId) {
+                        alert('すべてのAPIキーを入力してください。');
                         return;
                     }
+                    localStorage.setItem('yojitsuAppApiKeys', JSON.stringify(apiKeys));
+                    alert('APIキーを保存しました。ページをリロードします。');
+                    window.location.reload();
+                }
+
+                async function initializeGapiClient() {
+                    try {
+                        await gapi.client.init({
+                            apiKey: apiKeys.google,
+                            discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
+                        });
+                    } catch (e) {
+                         error.value = `Google APIクライアントの初期化に失敗しました: ${e.message || '不明なエラー'}. APIキーが正しいか確認してください。`;
+                    }
+                }
+                
+                function initializeGsiClient() {
+                    try {
+                        tokenClient = google.accounts.oauth2.initTokenClient({
+                            client_id: apiKeys.clientId,
+                            scope: SCOPES,
+                            callback: (tokenResponse) => {
+                                if (tokenResponse && tokenResponse.access_token) {
+                                    gapi.client.setToken(tokenResponse);
+                                    isLoggedIn.value = true;
+                                    fetchEvents();
+                                } else {
+                                    error.value = 'Google認証に失敗しました。';
+                                }
+                            },
+                        });
+                    } catch(e) {
+                        error.value = `Google認証クライアントの初期化に失敗しました: ${e.message || '不明なエラー'}. クライアントIDが正しいか確認してください。`;
+                    }
+                }
+                
+                // --- Auth ---
+                function handleAuthClick() {
                     error.value = null;
+                    if (!tokenClient) {
+                         error.value = "Google認証クライアントが初期化されていません。設定画面でAPIキーとクライアントIDを確認してください。";
+                         return;
+                    }
                     tokenClient.requestAccessToken({prompt: 'consent'});
                 }
 
                 function handleSignoutClick() {
+                    isLoggedIn.value = false;
+                    events.value = [];
                     const token = gapi.client.getToken();
                     if (token !== null) {
                         google.accounts.oauth2.revoke(token.access_token, () => {
                             gapi.client.setToken('');
-                            isLoggedIn.value = false;
-                            events.value = [];
                         });
                     }
                 }
                 
-                // --- イベント取得・表示関連の関数 ---
-                
-                async function fetchEvents() {
-                    if (!isLoggedIn.value) return;
-                    isLoading.value = true;
-                    error.value = null;
-                    events.value = [];
+                // --- Gemini API Call ---
+                async function getDailyReflection() {
+                    isGeminiModalOpen.value = true;
+                    isGeminiLoading.value = true;
+                    geminiResponse.value = '';
+                    geminiError.value = null;
+                    
+                    const prompt = createReflectionPrompt();
 
                     try {
-                        const timeMin = new Date(currentDate.value);
-                        timeMin.setHours(0, 0, 0, 0);
+                         const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKeys.gemini}`;
+                         
+                         const response = await fetch(GEMINI_API_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                         });
 
-                        const timeMax = new Date(currentDate.value);
-                        timeMax.setHours(23, 59, 59, 999);
-
-                        const request = {
-                            'calendarId': 'primary',
-                            'timeMin': timeMin.toISOString(),
-                            'timeMax': timeMax.toISOString(),
-                            'showDeleted': false,
-                            'singleEvents': true,
-                            'orderBy': 'startTime'
-                        };
-
-                        const response = await gapi.client.calendar.events.list(request);
-                        const calendarEvents = response.result.items.map(event => ({
-                            id: event.id,
-                            summary: event.summary,
-                            start: event.start.dateTime || event.start.date,
-                            end: event.end.dateTime || event.end.date,
-                            isAllDay: !!event.start.date,
-                            isUnplanned: false,
-                        }));
-                        events.value = calendarEvents;
+                         if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.error ? errorData.error.message : `HTTP error! status: ${response.status}`);
+                         }
+                         
+                         const data = await response.json();
+                         geminiResponse.value = data.candidates[0].content.parts[0].text;
 
                     } catch (err) {
-                        console.error('Execute error', err);
-                        error.value = 'カレンダーの予定の取得に失敗しました。時間をおいて再度お試しください。';
-                        if(err.result && err.result.error && err.result.error.message){
-                             error.value += ` (${err.result.error.message})`
-                        }
+                        console.error('Gemini API error:', err);
+                        geminiError.value = `AIからの応答取得に失敗しました。Gemini APIキーが正しいか、または有効期限を確認してください。 (${err.message})`;
                     } finally {
-                        isLoading.value = false;
+                        isGeminiLoading.value = false;
                     }
                 }
 
-                // --- 実績データ (Actuals) 関連の関数 ---
+                function createReflectionPrompt() {
+                    let eventData = "";
+                    eventsWithActuals.value.forEach(e => {
+                        const statusMap = {
+                            completed: "○（完了）",
+                            not_done: "✕（未完了）",
+                        };
+                        const status = e.actual ? statusMap[e.actual.status] || "未登録" : "未登録";
+                        const memo = e.actual && e.actual.memo ? `メモ: ${e.actual.memo}` : "";
+                        const time = e.isAllDay ? "終日" : `${formatTime(e.start)} - ${formatTime(e.end)}`;
+                        const unplanned = e.isUnplanned ? "【予定外タスク】" : "";
 
-                function loadActuals() {
-                    const savedActuals = localStorage.getItem('yojitsuAppActuals');
-                    if (savedActuals) {
-                        actuals.value = JSON.parse(savedActuals);
-                    }
-                }
-
-                function saveActualToStorage() {
-                    localStorage.setItem('yojitsuAppActuals', JSON.stringify(actuals.value));
-                }
-
-                function saveActual(eventId, status, isUnplanned = false) {
-                    if (!actuals.value[eventId]) {
-                         actuals.value[eventId] = { status: '', memo: '' };
-                    }
-                    actuals.value[eventId].status = status;
-                    // ステータスが'completed'の場合、メモはクリアする
-                    if (status === 'completed') {
-                        actuals.value[eventId].memo = '';
-                    }
-                    actuals.value[eventId].date = formattedDateKey.value;
-                    actuals.value[eventId].isUnplanned = isUnplanned;
-                    saveActualToStorage();
-                }
-
-                function openMemoModal(eventId, memo, isUnplanned) {
-                    currentEventId.value = eventId;
-                    currentMemo.value = memo;
-                    currentEventIsUnplanned.value = isUnplanned;
-                    isMemoModalOpen.value = true;
-                }
-
-                function closeMemoModal() {
-                    isMemoModalOpen.value = false;
-                }
-                
-                function saveMemo() {
-                    saveActual(currentEventId.value, 'not_done', currentEventIsUnplanned.value);
-                    actuals.value[currentEventId.value].memo = currentMemo.value;
-                    saveActualToStorage();
-                    closeMemoModal();
-                }
-                
-                // --- 予定外タスク関連 ---
-
-                function openUnplannedTaskModal() {
-                    unplannedTask.summary = '';
-                    unplannedTask.time = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                    isUnplannedTaskModalOpen.value = true;
-                }
-
-                function addUnplannedTask() {
-                    if (!unplannedTask.summary.trim()) {
-                        alert('タスク内容を入力してください。');
-                        return;
-                    }
-
-                    const newId = `unplanned-${Date.now()}`;
-                    const [hours, minutes] = unplannedTask.time.split(':');
-                    const taskDate = new Date(currentDate.value);
-                    taskDate.setHours(parseInt(hours), parseInt(minutes));
-
-                    const newEvent = {
-                        id: newId,
-                        summary: unplannedTask.summary,
-                        start: taskDate.toISOString(),
-                        end: taskDate.toISOString(),
-                        isAllDay: false,
-                        isUnplanned: true,
-                    };
-                    
-                    // 実績データとして保存
-                    actuals.value[newId] = {
-                        status: 'unspecified', // 初期状態
-                        memo: '',
-                        date: formattedDateKey.value,
-                        isUnplanned: true,
-                        summary: newEvent.summary,
-                        start: newEvent.start,
-                        end: newEvent.end
-                    };
-                    saveActualToStorage();
-                    
-                    isUnplannedTaskModalOpen.value = false;
-                }
-
-                // --- UI補助関数 / Computed Properties ---
-
-                const formattedDate = computed(() => {
-                    return currentDate.value.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-                });
-                
-                const formattedDateKey = computed(() => {
-                   return currentDate.value.toISOString().split('T')[0];
-                });
-
-                const eventsWithActuals = computed(() => {
-                    // Googleカレンダーからのイベントを取得
-                    const googleEvents = events.value.map(event => ({
-                        ...event,
-                        actual: actuals.value[event.id]
-                    }));
-
-                    // 今日の日付の予定外タスクを取得
-                    const unplannedEvents = Object.keys(actuals.value)
-                        .filter(key => key.startsWith('unplanned-') && actuals.value[key].date === formattedDateKey.value)
-                        .map(key => {
-                            const actual = actuals.value[key];
-                            return {
-                                id: key,
-                                summary: actual.summary,
-                                start: actual.start,
-                                end: actual.end,
-                                isAllDay: false,
-                                isUnplanned: true,
-                                actual: actual
-                            };
-                        });
-                    
-                    const allEvents = [...googleEvents, ...unplannedEvents];
-
-                    // 時間順にソート
-                    return allEvents.sort((a, b) => {
-                         if (a.isAllDay) return -1;
-                         if (b.isAllDay) return 1;
-                         return new Date(a.start) - new Date(b.start);
+                        eventData += `- ${time} ${unplanned}「${e.summary}」 -> 結果: ${status} ${memo}\n`;
                     });
+
+                    return `
+あなたは優秀な生産性向上コンサルタントです。
+以下の今日の私の活動記録を分析し、フィードバックと明日への具体的なアドバイスを、ポジティブでやる気の出るような口調で提供してください。
+
+# 今日の活動記録
+${eventData}
+
+# 指示
+- まず、今日の活動全体を要約し、良かった点を具体的に褒めてください。
+- 次に、未完了（✕）になったタスクや、メモの内容から読み取れる課題を分析してください。
+- 最後に、分析結果に基づいて、明日からすぐに実践できる、具体的で実行可能なアクションプランを2〜3個提案してください。
+- マークダウン形式で、見出しや箇条書きを使って分かりやすくまとめてください。`;
+                }
+                
+                // --- Event & Actuals (mostly unchanged) ---
+                async function fetchEvents() { if (!isLoggedIn.value) return; isLoading.value = true; error.value = null; events.value = []; try { const timeMin = new Date(currentDate.value); timeMin.setHours(0, 0, 0, 0); const timeMax = new Date(currentDate.value); timeMax.setHours(23, 59, 59, 999); const response = await gapi.client.calendar.events.list({ 'calendarId': 'primary', 'timeMin': timeMin.toISOString(), 'timeMax': timeMax.toISOString(), 'showDeleted': false, 'singleEvents': true, 'orderBy': 'startTime' }); events.value = response.result.items.map(event => ({ id: event.id, summary: event.summary, start: event.start.dateTime || event.start.date, end: event.end.dateTime || event.end.date, isAllDay: !!event.start.date, isUnplanned: false, })); } catch (err) { console.error('Execute error', err); error.value = 'カレンダーの予定の取得に失敗しました。'; } finally { isLoading.value = false; } }
+                function loadActuals() { const saved = localStorage.getItem('yojitsuAppActuals'); if (saved) actuals.value = JSON.parse(saved); }
+                function saveActualToStorage() { localStorage.setItem('yojitsuAppActuals', JSON.stringify(actuals.value)); }
+                function saveActual(eventId, status, isUnplanned = false) { if (!actuals.value[eventId]) { actuals.value[eventId] = { status: '', memo: '' }; } actuals.value[eventId].status = status; if (status === 'completed') { actuals.value[eventId].memo = ''; } actuals.value[eventId].date = formattedDateKey.value; actuals.value[eventId].isUnplanned = isUnplanned; saveActualToStorage(); }
+                function openMemoModal(eventId, memo, isUnplanned) { currentEventId.value = eventId; currentMemo.value = memo; currentEventIsUnplanned.value = isUnplanned; isMemoModalOpen.value = true; }
+                function closeMemoModal() { isMemoModalOpen.value = false; }
+                function saveMemo() { saveActual(currentEventId.value, 'not_done', currentEventIsUnplanned.value); actuals.value[currentEventId.value].memo = currentMemo.value; saveActualToStorage(); closeMemoModal(); }
+                function openUnplannedTaskModal() { unplannedTask.summary = ''; unplannedTask.time = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }); isUnplannedTaskModalOpen.value = true; }
+                function addUnplannedTask() { if (!unplannedTask.summary.trim()) { alert('タスク内容を入力してください。'); return; } const newId = `unplanned-${Date.now()}`; const [hours, minutes] = unplannedTask.time.split(':'); const taskDate = new Date(currentDate.value); taskDate.setHours(parseInt(hours), parseInt(minutes)); const newEvent = { id: newId, summary: unplannedTask.summary, start: taskDate.toISOString(), end: taskDate.toISOString(), isAllDay: false, isUnplanned: true, }; actuals.value[newId] = { status: 'unspecified', memo: '', date: formattedDateKey.value, isUnplanned: true, summary: newEvent.summary, start: newEvent.start, end: newEvent.end }; saveActualToStorage(); isUnplannedTaskModalOpen.value = false; }
+
+                // --- Computed & Helpers ---
+                const formattedDate = computed(() => currentDate.value.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }));
+                const formattedDateKey = computed(() => currentDate.value.toISOString().split('T')[0]);
+                const eventsWithActuals = computed(() => { const googleEvents = events.value.map(e => ({ ...e, actual: actuals.value[e.id] })); const unplannedEvents = Object.keys(actuals.value).filter(k => k.startsWith('unplanned-') && actuals.value[k].date === formattedDateKey.value).map(k => { const a = actuals.value[k]; return { id: k, summary: a.summary, start: a.start, end: a.end, isAllDay: false, isUnplanned: true, actual: a }; }); return [...googleEvents, ...unplannedEvents].sort((a, b) => { if (a.isAllDay) return -1; if (b.isAllDay) return 1; return new Date(a.start) - new Date(b.start); }); });
+                const formattedGeminiResponse = computed(() => {
+                    return marked.parse(geminiResponse.value || '');
                 });
 
-                function changeDay(delta) {
-                    if (delta === 0) {
-                        currentDate.value = new Date();
-                    } else {
-                        const newDate = new Date(currentDate.value);
-                        newDate.setDate(newDate.getDate() + delta);
-                        currentDate.value = newDate;
-                    }
-                    fetchEvents();
-                }
+                function changeDay(delta) { if (delta === 0) { currentDate.value = new Date(); } else { const newDate = new Date(currentDate.value); newDate.setDate(newDate.getDate() + delta); currentDate.value = newDate; } fetchEvents(); }
+                function formatTime(dateTimeStr) { if (!dateTimeStr) return ''; return new Date(dateTimeStr).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }); }
 
-                function formatTime(dateTimeStr) {
-                    if (!dateTimeStr) return '';
-                    return new Date(dateTimeStr).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-                }
-
-                // --- setupから返す ---
                 return {
-                    isLoggedIn,
-                    events,
-                    currentDate,
-                    isLoading,
-                    error,
-                    handleAuthClick,
-                    handleSignoutClick,
-                    fetchEvents,
-                    formattedDate,
-                    changeDay,
-                    formatTime,
-                    eventsWithActuals,
-                    saveActual,
-                    isMemoModalOpen,
-                    openMemoModal,
-                    closeMemoModal,
-                    saveMemo,
-                    currentMemo,
-                    isUnplannedTaskModalOpen,
-                    openUnplannedTaskModal,
-                    unplannedTask,
-                    addUnplannedTask,
+                    // State
+                    isLoggedIn, events, currentDate, isLoading, error, actuals,
+                    // API Keys & Settings
+                    apiKeys, areApiKeysSet, isSettingsModalOpen, saveApiKeys,
+                    // Auth
+                    handleAuthClick, handleSignoutClick,
+                    // Modals
+                    isMemoModalOpen, openMemoModal, closeMemoModal, saveMemo, currentMemo,
+                    isUnplannedTaskModalOpen, openUnplannedTaskModal, unplannedTask, addUnplannedTask,
+                    isGeminiModalOpen,
+                    // Gemini
+                    getDailyReflection, isGeminiLoading, geminiError, geminiResponse, formattedGeminiResponse,
+                    // Computed & Helpers
+                    formattedDate, eventsWithActuals, changeDay, formatTime, saveActual
                 };
             }
         });
         
-        // Lucideアイコンをグローバルコンポーネントとして登録
         app.use(LucideVueNext);
-        
-        // アプリをマウント
         app.mount('#app');
     </script>
 </body>
