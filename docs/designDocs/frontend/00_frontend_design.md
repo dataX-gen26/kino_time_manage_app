@@ -10,7 +10,6 @@
 - **テンプレートエンジン**: `Pug`
 - **CSSプリプロセッサ**: `Sass (SCSS記法)`
 - **UIライブラリ**: `bootstrap-vue-next`
-- **状態管理**: Pinia
 - **ルーティング**: `vue-router` (必須)
 - **HTTPクライアント**: Axios
 - **日付操作**: `date-fns`
@@ -21,32 +20,50 @@
 ## 3. ディレクトリ構成
 
 ```
-src/
-├── api/               # API通信層 (Axiosインスタンス、各リソースのAPIクライアント)
-├── assets/            # 静的ファイル (CSS, 画像)
-├── components/        # 再利用可能なUIコンポーネント
-│   ├── common/        # アプリケーション全体で使われる汎用コンポーネント (ボタン, モーダルなど)
-│   ├── layout/        # ヘッダー, フッター, サイドバーなどのレイアウトコンポーネント
-│   └── specific/      # 特定の機能に特化したコンポーネント (カレンダーグリッド, 分析グラフなど)
-├── composables/       # 再利用可能なロジック (Composition API)
-├── router/            # Vue Routerの設定
-├── stores/            # Piniaストア (状態管理)
-├── utils/             # ユーティリティ関数 (日付フォーマットなど)
-├── views/             # 各ページに対応するビューコンポーネント
-├── App.vue            # ルートコンポーネント
-└── main.js            # アプリケーションのエントリポイント
+# Railsプロジェクトルート
+my_rails_app/
+├── app/
+│   ├── javascript/      # Vue.jsのソースコード
+│   │   ├── api/           # API通信層 (Axiosインスタンス、各リソースのAPIクライアント)
+│   │   ├── assets/        # 静的ファイル (CSS, 画像)
+│   │   ├── components/    # 再利用可能なUIコンポーネント
+│   │   ├── composables/   # 再利用可能なロジック (Composition API)
+│   │   ├── router/        # Vue Routerの設定
+│   │   ├── stores/        # Piniaストア (状態管理)
+│   │   ├── utils/         # ユーティリティ関数 (日付フォーマットなど)
+│   │   ├── views/         # 各ページに対応するビューコンポーネント
+│   │   ├── entrypoints/   # エントリーポイント (Vueインスタンスをマウント)
+│   │   │   └── application.js
+│   │   ├── App.vue        # ルートコンポーネント
+│   │   └── vite.svg       # Viteのデフォルトファイルなど
+│   └── views/
+│       └── layouts/
+│           └── application.html.erb  # ここでViteのタグヘルパーを読み込む
+├── public/
+├── vite.config.ts         # Viteの設定ファイル (Railsプロジェクトルート)
+└── package.json
 ```
 
-## 4. 状態管理 (Pinia)
+## 4. ビルドとデプロイ
+
+- **ビルド**: Railsのデプロイプロセス（例: `rails assets:precompile`）の一部として、Vite RubyなどのGemがVue.jsアプリケーションを自動的にビルドし、Railsのアセットパイプラインを通じて配信可能な形式に変換する。
+- **デプロイ**: Railsアプリケーションのデプロイと同時に、Vue.jsのビルド成果物もデプロイされる。
+
+## 5. 開発環境
+
+- **フロントエンド開発サーバー**: `bin/vite dev` コマンド（Vite Rubyの場合）で起動する。Railsサーバーとは独立して動作し、ホットリロードを提供する。
+- **APIリクエスト**: フロントエンドからのAPIリクエストは、Railsサーバー（例: `http://localhost:3000`）に直接送信される。Vite開発サーバーは、Railsサーバーへのプロキシとして機能するよう設定される（`vite.config.ts`）。
+
+## 6. 状態管理 (Pinia)
 
 機能ごとにストアを分割して管理する。
 
-- **`auth.js`**: ユーザーの認証情報（JWTトークン）、ログイン状態を管理。
+- **`auth.js`**: ユーザーの認証情報、ログイン状態を管理。
 - **`calendar.js`**: 表示中の日付、Googleカレンダーの予定データ、実績データを管理。
 - **`ui.js`**: モーダルの表示状態、ローディング状態など、UIに関する状態を管理。
 - **`categories.js`**: ユーザーが作成したカテゴリの一覧を管理。
 
-## 5. コンポーネント設計（概要）
+## 7. コンポーネント設計（概要）
 
 詳細は各機能の設計書で記述するが、主要なコンポーネントは以下の通り。
 
@@ -63,7 +80,7 @@ src/
     - **`CategoryPieChart.vue`**: カテゴリ別円グラフ。
     - **`ActivityBarChart.vue`**: 日別活動時間積み上げ棒グラフ。
 
-## 6. ルーティング (Vue Router)
+## 8. ルーティング (Vue Router)
 
 - `/`: `HomeView` (未認証時) / `MainView` (認証時) - `beforeEnter`ガードで振り分け
 - `/dashboard`: `DashboardView` (認証が必要)
