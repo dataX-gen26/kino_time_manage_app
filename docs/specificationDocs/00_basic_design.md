@@ -26,10 +26,10 @@
 
 各機能の詳細は、以下の個別仕様書を参照すること。
 
-- **[01_user-authentication.md](./01_user-authentication.md)**: ユーザー認証機能
-- **[02_calendar-integration.md](./02_calendar-integration.md)**: Googleカレンダー連携
-- **[03_main-ui.md](./03_main-ui.md)**: メイン画面UIとナビゲーション
-- **[04_actual-record-management.md](./04_actual-record-management.md)**: 実績の記録・管理機能
-- **[05_analysis-dashboard.md](./05_analysis-dashboard.md)**: 分析ダッシュボード機能
-- **[06_ai-feedback.md](./06_ai-feedback.md)**: AIによるフィードバック機能
-- **[07_database-design.md](./07_database-design.md)**: データベース設計
+- **[01_user_authentication.md](./01_user_authentication.md)**: ユーザー認証機能
+- **[02_calendar_integration.md](./02_calendar_integration.md)**: Googleカレンダー連携
+- **[03_main_ui.md](./03_main_ui.md)**: メイン画面UIとナビゲーション
+- **[04_actual_record_management.md](./04_actual_record_management.md)**: 実績の記録・管理機能
+- **[05_analysis_dashboard.md](./05_analysis_dashboard.md)**: 分析ダッシュボード機能
+- **[06_ai_feedback.md](./06_ai_feedback.md)**: AIによるフィードバック機能
+- **[07_database_design.md](./07_database_design.md)**: データベース設計
