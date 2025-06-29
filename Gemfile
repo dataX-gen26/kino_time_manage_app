@@ -24,7 +24,7 @@ gem "pundit", "~> 2.3.1"
 # Use active_model_serializers for JSON serialization
 gem "active_model_serializers", "~> 0.10.14"
 # Use httparty for making HTTP requests
-gem "httparty", "~> 0.22.0"
+gem "httparty", "~> 0.23.1"
 # Use rswag for API documentation
 gem "rswag"
 # Use vite_rails for Vite integration
