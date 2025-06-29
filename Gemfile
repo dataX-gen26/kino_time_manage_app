@@ -20,7 +20,7 @@ gem "jbuilder"
 # Use OmniAuth for Google OAuth2
 gem "omniauth-google-oauth2", "~> 1.1.1"
 # Use Pundit for authorization
-gem "pundit", "~> 2.3.1"
+gem "pundit", "~> 2.5.0"
 # Use active_model_serializers for JSON serialization
 gem "active_model_serializers", "~> 0.10.14"
 # Use httparty for making HTTP requests
