@@ -58,3 +58,17 @@ Things you may want to cover:
 - Deployment instructions
 
 - ...
+
+
+# MySQL に関して
+mysql サーバーに入る時
+```bash
+# サービス起動
+brew services start mysql
+
+# ログイン（パスワードを求められるが、未入力のままエンターを押せば良い）
+mysql -u root -p 
+
+# データベースを確認したい
+mysql> show databases;
+```

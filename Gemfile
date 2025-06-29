@@ -4,8 +4,8 @@ source "https://rubygems.org"
 gem "rails", "~> 8.0.2"
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem "propshaft"
-# Use sqlite3 as the database for Active Record
-gem "sqlite3", ">= 2.1"
+# Use mysql as the database for Active Record
+gem "mysql2", "~> 0.5"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
@@ -16,6 +16,22 @@ gem "turbo-rails"
 gem "stimulus-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+
+# Use OmniAuth for Google OAuth2
+gem "omniauth-google-oauth2", "~> 1.1.1"
+# Use Pundit for authorization
+gem "pundit", "~> 2.3.1"
+# Use active_model_serializers for JSON serialization
+gem "active_model_serializers", "~> 0.10.14"
+# Use httparty for making HTTP requests
+gem "httparty", "~> 0.22.0"
+# Use rswag for API documentation
+gem "rswag"
+# Use vite_rails for Vite integration
+gem "vite_rails", "~> 3.0.8"
+# Use sidekiq for background processing
+gem "sidekiq", "~> 7.2.4"
+
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
