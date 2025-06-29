@@ -2,10 +2,12 @@
   <div id="app">
     <header>
       <button v-if="!auth.user" @click="auth.login">Login with Google</button>
-      <button v-if="auth.user" @click="auth.logout">Logout</button>
       <div v-if="auth.user">
         <img :src="auth.user.image_url" alt="user avatar" width="32" height="32">
         <span>{{ auth.user.name }}</span>
+        <router-link to="/main">Main</router-link>
+        <router-link to="/dashboard">Dashboard</router-link>
+        <button @click="auth.logout">Logout</button>
       </div>
     </header>
     <router-view />
