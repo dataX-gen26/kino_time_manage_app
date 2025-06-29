@@ -4,7 +4,7 @@
     <DateNavigator />
     <div class="calendar-grid">
       <PlanColumn />
-      <!-- <ActualColumn /> -->
+      <ActualColumn />
     </div>
   </div>
 </template>
@@ -12,7 +12,7 @@
 <script setup>
 import DateNavigator from '../components/DateNavigator.vue'
 import PlanColumn from '../components/PlanColumn.vue'
-// import ActualColumn from '../components/ActualColumn.vue'
+import ActualColumn from '../components/ActualColumn.vue'
 </script>
 
 <style scoped>
