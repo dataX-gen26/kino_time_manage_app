@@ -30,7 +30,7 @@ gem "rswag"
 # Use vite_rails for Vite integration
 gem "vite_rails", "~> 3.0.8"
 # Use sidekiq for background processing
-gem "sidekiq", "~> 7.2.4"
+gem "sidekiq", "~> 8.0.4"
 
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
