@@ -19,6 +19,8 @@ gem "jbuilder"
 
 # Use OmniAuth for Google OAuth2
 gem "omniauth-google-oauth2", "~> 1.1.1"
+gem "google-apis-calendar_v3", "~> 0.20"
+gem "googleauth", "~> 1.0"
 # Use Pundit for authorization
 gem "pundit", "~> 2.3.1"
 # Use active_model_serializers for JSON serialization
