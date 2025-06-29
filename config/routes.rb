@@ -3,6 +3,8 @@ Rails.application.routes.draw do
     namespace :v1 do
       get "users/me", to: "users#me"
       get "calendar/events", to: "calendar#events"
+      resources :actuals
+      resources :categories
     end
   end
 
