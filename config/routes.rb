@@ -5,6 +5,7 @@ Rails.application.routes.draw do
       get "calendar/events", to: "calendar#events"
       resources :actuals
       resources :categories
+      get "dashboard/summary", to: "dashboard#summary"
     end
   end
 
