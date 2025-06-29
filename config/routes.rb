@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       resources :actuals
       resources :categories
       get "dashboard/summary", to: "dashboard#summary"
+      post "ai/daily_review", to: "ai#daily_review"
     end
   end
 
