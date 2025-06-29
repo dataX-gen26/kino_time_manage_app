@@ -7,6 +7,9 @@ Rails.application.routes.draw do
       resources :categories
       get "dashboard/summary", to: "dashboard#summary"
       post "ai/daily_review", to: "ai#daily_review"
+      resources :weekly_goals do
+        resources :weekly_goal_progresses, only: [:index, :create]
+      end
     end
   end
 

@@ -1,6 +1,7 @@
 class User < ApplicationRecord
   has_many :categories
   has_many :actuals
+  has_many :weekly_goals
 
   def self.find_or_create_from_auth_hash(auth_hash)
     provider = auth_hash[:provider]

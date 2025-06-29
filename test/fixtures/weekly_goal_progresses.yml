@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  weekly_goal: one
+  actual: one
+  progress_date: 2025-06-29
+  content: MyText
+
+two:
+  weekly_goal: two
+  actual: two
+  progress_date: 2025-06-29
+  content: MyText

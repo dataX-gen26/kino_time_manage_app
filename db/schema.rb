@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_29_123715) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_29_124101) do
   create_table "actuals", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.bigint "category_id", null: false
@@ -46,7 +46,33 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_123715) do
     t.datetime "expires_at"
   end
 
+  create_table "weekly_goal_progresses", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "weekly_goal_id", null: false
+    t.bigint "actual_id", null: false
+    t.date "progress_date"
+    t.text "content"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["actual_id"], name: "index_weekly_goal_progresses_on_actual_id"
+    t.index ["weekly_goal_id"], name: "index_weekly_goal_progresses_on_weekly_goal_id"
+  end
+
+  create_table "weekly_goals", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.date "start_date"
+    t.date "end_date"
+    t.string "title"
+    t.text "description"
+    t.string "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_weekly_goals_on_user_id"
+  end
+
   add_foreign_key "actuals", "categories"
   add_foreign_key "actuals", "users"
   add_foreign_key "categories", "users"
+  add_foreign_key "weekly_goal_progresses", "actuals"
+  add_foreign_key "weekly_goal_progresses", "weekly_goals"
+  add_foreign_key "weekly_goals", "users"
 end
