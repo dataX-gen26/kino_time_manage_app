@@ -62,6 +62,7 @@ my_rails_app/
 - **`calendar.js`**: 表示中の日付、Googleカレンダーの予定データ、実績データを管理。
 - **`ui.js`**: モーダルの表示状態、ローディング状態など、UIに関する状態を管理。
 - **`categories.js`**: ユーザーが作成したカテゴリの一覧を管理。
+- **`weeklyGoals.js`**: 週次目標、およびその進捗データを管理。
 
 ## 7. コンポーネント設計（概要）
 
@@ -75,7 +76,9 @@ my_rails_app/
     - **`CalendarGrid.vue`**: 時間軸、予定、実績のグリッド表示を担当。
         - **`PlanColumn.vue`**: 予定列。
         - **`ActualColumn.vue`**: 実績列。
-    - **`ActualFormModal.vue`**: 実績の登録・編集用モーダル。
+    - **`ActualFormModal.vue`**: 実績の登録・編集用モーダル。週次目標進捗記入欄を内包する。
+- **`WeeklyGoalSettingModal.vue`**: 週次目標の設定・編集用モーダル。
+- **`WeeklyReviewView.vue`**: 週次目標の振り返り画面。
 - **`DashboardView.vue`**: 分析ダッシュボードページ。
     - **`CategoryPieChart.vue`**: カテゴリ別円グラフ。
     - **`ActivityBarChart.vue`**: 日別活動時間積み上げ棒グラフ。
@@ -84,4 +87,5 @@ my_rails_app/
 
 - `/`: `HomeView` (未認証時) / `MainView` (認証時) - `beforeEnter`ガードで振り分け
 - `/dashboard`: `DashboardView` (認証が必要)
+- `/weekly-goals`: `WeeklyReviewView` (週次目標の振り返り画面、認証が必要)
 - `/login`: ログイン処理中の中間ページ（必要であれば）

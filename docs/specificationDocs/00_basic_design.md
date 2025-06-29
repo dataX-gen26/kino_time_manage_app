@@ -32,4 +32,5 @@
 - **[04_actual_record_management.md](./04_actual_record_management.md)**: 実績の記録・管理機能
 - **[05_analysis_dashboard.md](./05_analysis_dashboard.md)**: 分析ダッシュボード機能
 - **[06_ai_feedback.md](./06_ai_feedback.md)**: AIによるフィードバック機能
+- **[08_weekly_goal_management.md](./08_weekly_goal_management.md)**: 週次目標管理機能
 - **[07_database_design.md](./07_database_design.md)**: データベース設計
