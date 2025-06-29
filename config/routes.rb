@@ -10,6 +10,7 @@ Rails.application.routes.draw do
       resources :weekly_goals do
         resources :weekly_goal_progresses, only: [:index, :create]
       end
+      post "ai/weekly_review", to: "ai#weekly_review"
     end
   end
 

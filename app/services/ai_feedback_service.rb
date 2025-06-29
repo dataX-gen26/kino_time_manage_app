@@ -12,7 +12,13 @@ class AiFeedbackService
     planned_events = fetch_planned_events
     actual_records = fetch_actual_records
 
-    prompt = build_prompt(planned_events, actual_records)
+    prompt = build_daily_review_prompt(planned_events, actual_records)
+    call_gemini_api(prompt)
+  end
+
+  def generate_weekly_review(weekly_goal)
+    progress_contents = weekly_goal.weekly_goal_progresses.map(&:content)
+    prompt = build_weekly_review_prompt(weekly_goal, progress_contents)
     call_gemini_api(prompt)
   end
 
@@ -45,7 +51,7 @@ class AiFeedbackService
     end
   end
 
-  def build_prompt(planned_events, actual_records)
+  def build_daily_review_prompt(planned_events, actual_records)
     <<~PROMPT
       あなたは優秀な生産性向上コンサルタントです。
       以下のデータは、あるユーザーの1日のGoogleカレンダーの予定と、実際に行動した実績の記録です。
@@ -66,6 +72,33 @@ class AiFeedbackService
 
       ## 明日へのアクションプラン
       - 具体的な改善行動の提案。
+    PROMPT
+  end
+
+  def build_weekly_review_prompt(weekly_goal, progress_contents)
+    <<~PROMPT
+      あなたは優秀な生産性向上コンサルタントです。
+      以下のデータは、あるユーザーの週次目標と、それに対する日々の進捗記録です。
+
+      週次目標:
+      タイトル: #{weekly_goal.title}
+      詳細: #{weekly_goal.description}
+      期間: #{weekly_goal.start_date} から #{weekly_goal.end_date}
+
+      進捗記録:
+      #{progress_contents.join("
+")}
+
+      このデータに基づいて、以下の形式でフィードバックと次週へのアドバイスを生成してください。
+
+      ## 今週の目標達成度
+      - 目標に対する進捗状況の評価。
+
+      ## 課題と学び
+      - 目標達成を妨げた要因、新たな発見など。
+
+      ## 次週へのアドバイス
+      - 具体的な改善策や、目標設定に関する提案。
     PROMPT
   end
 

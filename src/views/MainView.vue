@@ -3,6 +3,7 @@
     <h1>Main View</h1>
     <DateNavigator />
     <BButton @click="showDailyReview">今日の振り返り (AI)</BButton>
+    <BButton @click="openWeeklyGoalSettingModal">週次目標設定</BButton>
     <div class="calendar-grid">
       <PlanColumn />
       <ActualColumn />
@@ -13,6 +14,7 @@
         <BButton variant="secondary" @click="showReviewModal = false">Close</BButton>
       </template>
     </BModal>
+    <WeeklyGoalSettingModal ref="weeklyGoalSettingModal" />
   </div>
 </template>
 
@@ -20,6 +22,7 @@
 import DateNavigator from '../components/DateNavigator.vue'
 import PlanColumn from '../components/PlanColumn.vue'
 import ActualColumn from '../components/ActualColumn.vue'
+import WeeklyGoalSettingModal from '../components/WeeklyGoalSettingModal.vue'
 import { ref, computed } from 'vue'
 import { useCalendarStore } from '../stores/calendar'
 import { marked } from 'marked'
@@ -27,6 +30,7 @@ import { marked } from 'marked'
 const calendar = useCalendarStore()
 const showReviewModal = ref(false)
 const feedbackContent = ref('')
+const weeklyGoalSettingModal = ref(null)
 
 const renderedFeedback = computed(() => {
   return marked(feedbackContent.value)
@@ -53,6 +57,10 @@ const showDailyReview = async () => {
     feedbackContent.value = 'Error getting AI feedback.'
     showReviewModal.value = true
   }
+}
+
+const openWeeklyGoalSettingModal = () => {
+  weeklyGoalSettingModal.value.openModal()
 }
 </script>
 

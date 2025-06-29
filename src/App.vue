@@ -7,6 +7,7 @@
         <span>{{ auth.user.name }}</span>
         <router-link to="/main">Main</router-link>
         <router-link to="/dashboard">Dashboard</router-link>
+        <router-link to="/weekly-review">Weekly Review</router-link>
         <button @click="auth.logout">Logout</button>
       </div>
     </header>

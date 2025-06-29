@@ -21,6 +21,15 @@
         <BFormCheckbox v-model="form.is_problem">Is Problem?</BFormCheckbox>
       </BFormGroup>
 
+      <hr>
+      <h5>Weekly Goal Progress</h5>
+      <BFormGroup label="Weekly Goal" label-for="weekly-goal-select">
+        <BFormSelect id="weekly-goal-select" v-model="form.weekly_goal_id" :options="weeklyGoalOptions"></BFormSelect>
+      </BFormGroup>
+      <BFormGroup label="Progress Content" label-for="progress-content-textarea">
+        <BFormTextarea id="progress-content-textarea" v-model="form.progress_content"></BFormTextarea>
+      </BFormGroup>
+
       <div class="d-flex justify-content-end">
         <BButton type="submit" variant="primary">Save</BButton>
       </div>
@@ -32,10 +41,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useCalendarStore } from '../stores/calendar'
 import { useCategoriesStore } from '../stores/categories'
+import { useWeeklyGoalsStore } from '../stores/weeklyGoals'
 import { format, parseISO } from 'date-fns'
 
 const calendar = useCalendarStore()
 const categoriesStore = useCategoriesStore()
+const weeklyGoalsStore = useWeeklyGoalsStore()
 
 const showModal = ref(false)
 const form = ref({
@@ -44,10 +55,16 @@ const form = ref({
   start_time: '',
   end_time: '',
   is_problem: false,
+  weekly_goal_id: null,
+  progress_content: '',
 })
 
 const categoryOptions = computed(() => {
   return categoriesStore.categories.map(cat => ({ value: cat.id, text: cat.name }))
+})
+
+const weeklyGoalOptions = computed(() => {
+  return weeklyGoalsStore.weeklyGoals.map(goal => ({ value: goal.id, text: goal.title }))
 })
 
 const openModal = (actual = null) => {
@@ -59,6 +76,8 @@ const openModal = (actual = null) => {
       start_time: format(parseISO(actual.start_time), "yyyy-MM-dd'T'HH:mm"),
       end_time: format(parseISO(actual.end_time), "yyyy-MM-dd'T'HH:mm"),
       is_problem: actual.is_problem,
+      weekly_goal_id: actual.weekly_goal_progresses?.[0]?.weekly_goal_id || null,
+      progress_content: actual.weekly_goal_progresses?.[0]?.content || '',
     }
   } else {
     resetForm()
@@ -67,10 +86,30 @@ const openModal = (actual = null) => {
 }
 
 const saveActual = async () => {
+  const actualData = {
+    content: form.value.content,
+    category_id: form.value.category_id,
+    start_time: form.value.start_time,
+    end_time: form.value.end_time,
+    is_problem: form.value.is_problem,
+  }
+
+  let savedActual
   if (form.value.id) {
-    await calendar.updateActual(form.value.id, form.value)
+    savedActual = await calendar.updateActual(form.value.id, actualData)
   } else {
-    await calendar.createActual(form.value)
+    savedActual = await calendar.createActual(actualData)
+  }
+
+  if (savedActual && form.value.weekly_goal_id && form.value.progress_content) {
+    await weeklyGoalsStore.createWeeklyGoalProgress(
+      form.value.weekly_goal_id,
+      {
+        actual_id: savedActual.id,
+        progress_date: format(parseISO(form.value.start_time), 'yyyy-MM-dd'),
+        content: form.value.progress_content,
+      }
+    )
   }
   showModal.value = false
 }
@@ -82,11 +121,14 @@ const resetForm = () => {
     start_time: '',
     end_time: '',
     is_problem: false,
+    weekly_goal_id: null,
+    progress_content: '',
   }
 }
 
 onMounted(() => {
   categoriesStore.fetchCategories()
+  weeklyGoalsStore.fetchWeeklyGoals()
 })
 
 defineExpose({ openModal })

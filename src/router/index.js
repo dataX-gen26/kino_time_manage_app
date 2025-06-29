@@ -24,6 +24,12 @@ const router = createRouter({
       component: () => import('../views/DashboardView.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/weekly-review',
+      name: 'weekly-review',
+      component: () => import('../views/WeeklyReviewView.vue'),
+      meta: { requiresAuth: true }
+    },
   ]
 })
 
