@@ -57,4 +57,4 @@
 
 - `actuals`テーブル
 - `categories`テーブル
-- （詳細は[データベース設計書](./07_database-design.md)を参照）
+- （詳細は[データベース設計書](./07_database_design.md)を参照）
