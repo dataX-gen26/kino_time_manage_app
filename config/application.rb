@@ -11,6 +11,15 @@ module Myapp
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
 
+    # Add OmniAuth middleware
+    config.middleware.insert_after ActionDispatch::Session::CookieStore, OmniAuth::Builder do
+      provider :google_oauth2, ENV['GOOGLE_CLIENT_ID'], ENV['GOOGLE_CLIENT_SECRET'],
+               { scope: 'email,profile,calendar',
+                 prompt: 'select_account',
+                 image_aspect_ratio: 'square',
+                 image_size: 50 }
+    end
+
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.

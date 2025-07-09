@@ -1,5 +1,6 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  # Defines the root path route ("/")
+  # root "posts#index"
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
@@ -11,4 +12,13 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  namespace :api do
+    namespace :v1 do
+      get 'auth/google_oauth2', to: 'auth#google_oauth2'
+      get 'auth/google_oauth2/callback', to: 'auth#google_oauth2_callback'
+      delete 'auth/logout', to: 'auth#logout'
+      get 'sessions/check', to: 'sessions#check'
+    end
+  end
 end
