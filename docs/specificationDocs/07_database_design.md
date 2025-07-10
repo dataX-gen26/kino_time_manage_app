@@ -24,7 +24,6 @@ erDiagram
         string avatar_url
         text access_token
         text refresh_token
-        string remember_digest
         datetime created_at
         datetime updated_at
     }
@@ -66,7 +65,6 @@ erDiagram
 | `avatar_url`    | `varchar(255)` | プロフィール画像のURL                    |
 | `access_token`  | `text`       | Google APIのアクセストークン（暗号化）   |
 | `refresh_token` | `text`       | Google APIのリフレッシュトークン（暗号化） |
-| `remember_digest` | `varchar(255)` | 永続ログイン用の記憶トークンのダイジェスト |
 | `created_at`    | `datetime`   | 作成日時                                 |
 | `updated_at`    | `datetime`   | 更新日時                                 |
 
