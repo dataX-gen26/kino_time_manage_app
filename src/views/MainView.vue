@@ -2,12 +2,13 @@
   .main-view
     h1 メイン画面
     DateNavigator
-    //- CalendarGrid
+    CalendarGrid
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
 import DateNavigator from '@/components/layout/DateNavigator.vue'
+import CalendarGrid from '@/components/specific/CalendarGrid.vue'
 import { useCalendarStore } from '@/stores/calendar'
 
 const calendarStore = useCalendarStore()
