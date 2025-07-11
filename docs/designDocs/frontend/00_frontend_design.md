@@ -10,51 +10,54 @@
 - **テンプレートエンジン**: `Pug`
 - **CSSプリプロセッサ**: `Sass (SCSS記法)`
 - **UIライブラリ**: `bootstrap-vue-next`
-- **ルーティング**: `vue-router` (必須)
+- **ルーティング**: `vue-router`
 - **HTTPクライアント**: Axios
+- **状態管理**: Pinia
 - **日付操作**: `date-fns`
 - **グラフ描画**: `vue-chartjs`
 - **Markdownパーサー**: `marked`
 - **ビルドツール**: Vite
 
-## 3. ディレクトリ構成
+## 3. API連携設計
+
+バックエンドAPIとの連携は、セキュリティと保守性を考慮して以下の通り設計する。
+
+### 3.1. APIクライアント
+
+- `src/api/client.js` (または `src/plugins/axios.js`) にAxiosのカスタムインスタンスを作成し、一元管理する。
+- **共通設定**:
+    - `baseURL`: 環境変数 (`VITE_API_BASE_URL`) からAPIのベースURLを設定する。
+    - `withCredentials: true`: オリジン間リクエストでクッキー（セッションIDなど）を自動的に送受信するために必須。
+    - `headers`: リクエストヘッダーの共通設定（`Content-Type`など）。
+- **CSRFトークン連携**:
+    1. アプリケーション初期化時に、バックエンドの専用エンドポイント (`/api/v1/csrf_token`) からCSRFトークンを取得する。
+    2. 取得したトークンをAxiosインスタンスのデフォルトヘッダー (`X-CSRF-Token`) に設定する。
+    3. これにより、以降の全てのPOST, PUT, DELETEリクエストでトークンが自動的に送信される。
+
+### 3.2. 環境変数
+
+- プロジェクトルートに `.env` ファイルを配置し、Viteの機能を使って環境変数を管理する。
+- `VITE_API_BASE_URL`: 開発環境では `http://localhost:3000/api/v1`、本番環境では `/api/v1` などを設定。
+
+## 4. ディレクトリ構成
 
 ```
-# Railsプロジェクトルート
-my_rails_app/
-├── app/
-│   ├── javascript/      # Vue.jsのソースコード
-│   │   ├── api/           # API通信層 (Axiosインスタンス、各リソースのAPIクライアント)
-│   │   ├── assets/        # 静的ファイル (CSS, 画像)
-│   │   ├── components/    # 再利用可能なUIコンポーネント
-│   │   ├── composables/   # 再利用可能なロジック (Composition API)
-│   │   ├── router/        # Vue Routerの設定
-│   │   ├── stores/        # Piniaストア (状態管理)
-│   │   ├── utils/         # ユーティリティ関数 (日付フォーマットなど)
-│   │   ├── views/         # 各ページに対応するビューコンポーネント
-│   │   ├── entrypoints/   # エントリーポイント (Vueインスタンスをマウント)
-│   │   │   └── application.js
-│   │   ├── App.vue        # ルートコンポーネント
-│   │   └── vite.svg       # Viteのデフォルトファイルなど
-│   └── views/
-│       └── layouts/
-│           └── application.html.erb  # ここでViteのタグヘルパーを読み込む
-├── public/
-├── vite.config.ts         # Viteの設定ファイル (Railsプロジェクトルート)
-└── package.json
+src/
+├── api/
+│   ├── client.js      # Axiosカスタムインスタンス
+│   ├── auth.js        # 認証関連API
+│   └── ...            # 他のリソースAPI
+├── assets/
+├── components/
+├── composables/
+├── router/
+├── stores/
+├── views/
+├── App.vue
+└── main.js          # アプリケーションエントリーポイント
 ```
 
-## 4. ビルドとデプロイ
-
-- **ビルド**: Railsのデプロイプロセス（例: `rails assets:precompile`）の一部として、Vite RubyなどのGemがVue.jsアプリケーションを自動的にビルドし、Railsのアセットパイプラインを通じて配信可能な形式に変換する。
-- **デプロイ**: Railsアプリケーションのデプロイと同時に、Vue.jsのビルド成果物もデプロイされる。
-
-## 5. 開発環境
-
-- **フロントエンド開発サーバー**: `bin/vite dev` コマンド（Vite Rubyの場合）で起動する。Railsサーバーとは独立して動作し、ホットリロードを提供する。
-- **APIリクエスト**: フロントエンドからのAPIリクエストは、Railsサーバー（例: `http://localhost:3000`）に直接送信される。Vite開発サーバーは、Railsサーバーへのプロキシとして機能するよう設定される（`vite.config.ts`）。
-
-## 6. 状態管理 (Pinia)
+## 5. 状態管理 (Pinia)
 
 機能ごとにストアを分割して管理する。
 
@@ -64,28 +67,14 @@ my_rails_app/
 - **`categories.js`**: ユーザーが作成したカテゴリの一覧を管理。
 - **`weeklyGoals.js`**: 週次目標、およびその進捗データを管理。
 
-## 7. コンポーネント設計（概要）
-
-詳細は各機能の設計書で記述するが、主要なコンポーネントは以下の通り。
-
-- **`App.vue`**: ルータービューを配置し、全体のレイアウトを決定する。
-- **`HomeView.vue`**: ログイン前のトップページ。
-- **`MainView.vue`**: ログイン後のメイン画面。カレンダーUI全体を統括する。
-    - **`TheHeader.vue`**: ヘッダーコンポーネント。
-    - **`DateNavigator.vue`**: 日付ナビゲーションコンポーネント。
-    - **`CalendarGrid.vue`**: 時間軸、予定、実績のグリッド表示を担当。
-        - **`PlanColumn.vue`**: 予定列。
-        - **`ActualColumn.vue`**: 実績列。
-    - **`ActualFormModal.vue`**: 実績の登録・編集用モーダル。週次目標進捗記入欄を内包する。
-- **`WeeklyGoalSettingModal.vue`**: 週次目標の設定・編集用モーダル。
-- **`WeeklyReviewView.vue`**: 週次目標の振り返り画面。
-- **`DashboardView.vue`**: 分析ダッシュボードページ。
-    - **`CategoryPieChart.vue`**: カテゴリ別円グラフ。
-    - **`ActivityBarChart.vue`**: 日別活動時間積み上げ棒グラフ。
-
-## 8. ルーティング (Vue Router)
+## 6. ルーティング (Vue Router)
 
 - `/`: `HomeView` (未認証時) / `MainView` (認証時) - `beforeEnter`ガードで振り分け
+- `/auth/callback`: `AuthCallback.vue` (Google認証からのコールバック処理)
 - `/dashboard`: `DashboardView` (認証が必要)
-- `/weekly-goals`: `WeeklyReviewView` (週次目標の振り返り画面、認証が必要)
-- `/login`: ログイン処理中の中間ページ（必要であれば）
+- `/weekly-goals`: `WeeklyReviewView` (認証が必要)
+
+## 7. 認証フロー (PKCE)
+
+- 認証が必要なルートには `beforeEnter` ナビゲーションガードを設定し、Piniaの `auth` ストアをチェックして未認証なら `/` にリダイレクトする。
+- ログイン処理の詳細は[ユーザー認証設計書](./01_user_authentication.md)を参照。

@@ -1,124 +1,108 @@
-# 予実管理AIアシスタントアプリ 全体開発プロセス詳細
+vueファイルを作成するときは pug 記法を用いて
+またスタイルは sass を用いて
 
-このドキュメントを読み込んだら、まず「実装手順書を読み込んだ！」と表示してください。
-本ドキュメントは、「予実管理AIアシスタントアプリ」の全体開発を効率的かつ段階的に進めるためのプロセスを定義します。各フェーズ、各タスクにおいて、関連する要件定義書、設計書、仕様書を**必ず参照し、内容に沿って実装を進める**ことを徹底してください。これにより、手戻りを最小限に抑え、品質の高いアプリケーション開発を目指します。
+どの機能を作成するときも、実装に着手する前に以下の手順を踏むようにして
+- docs/requirements-definition.md を読んでアプリの目的を確認する
+- 実装する機能に関連する仕様書(docs/specificationDocs/ の中にある)を読んで、どのような機能が必要なのかを漏れなく確認する
+- 設計書(docs/designDocs/ の中)を読んで、具体的な設計方針を立てる
+- ライブラリを用いる際は、公式ドキュメントなどを参照しながら実装すること。
 
-## 開発フェーズ
+ ユーザーログイン画面 実装手順書
 
-### フェーズ0: プロジェクトの初期設定と環境構築
 
-開発を開始する前の準備段階です。
+  この手順書は、ユーザーログイン画面を実装するための手順をまとめたものです。
+  実装に着手する前に、各ステップで指定されたドキュメントをよく読み、仕様や設計を完全に理解した上で進めてください。
 
-1.  **プロジェクトの初期化**: RailsプロジェクトとVue.jsプロジェクトのセットアップ。
-    - **参照ドキュメント**: `docs/designDocs/backend/00_backend_design.md` の「2. アーキテクチャ & 使用ライブラリ」、`docs/designDocs/frontend/00_frontend_design.md` の「2. アーキテクチャ & 使用ライブラリ」。
-2.  **データベースのセットアップ**: MySQLのインストールと初期設定。
-    - **参照ドキュメント**: `docs/designDocs/backend/00_backend_design.md` の「2. アーキテクチャ & 使用ライブラリ」。
-3.  **開発環境の確認**: Railsサーバー、Vite開発サーバーがそれぞれ起動し、連携できることを確認。
-    - **参照ドキュメント**: `docs/designDocs/frontend/00_frontend_design.md` の「5. 開発環境」。
+  Step 1: プロジェクトの全体像と要求の理解
 
-### フェーズ1: 認証基盤と基本UIの構築
 
-アプリケーションの入り口となる認証機能と、メイン画面の骨格を構築します。
+  まず、このプロジェクトが何を目指しているのか、そしてユーザー認証機能がどのような役割を担うのかを把握します。
 
-1.  **ユーザー認証 (バックエンド)**:
-    - Google OAuth2認証の実装 (`omniauth-google-oauth2`)。
-    - ユーザー情報のDB保存、セッション管理。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「ユーザー認証」、`docs/designDocs/backend/00_backend_design.md` の「5. 認証・認可」、`docs/specificationDocs/01_user_authentication.md`。
-2.  **ユーザー認証 (フロントエンド)**:
-    - ログイン/ログアウトUIの実装。
-    - 認証状態の管理 (Pinia `auth.js` ストア)。
-    - **参照ドキュメント**: `docs/designDocs/frontend/00_frontend_design.md` の「6. 状態管理 (Pinia)」、`docs/specificationDocs/01_user_authentication.md`。
-3.  **基本UIの構築**:
-    - `App.vue`, `HomeView.vue`, `MainView.vue` の作成。
-    - ヘッダー (`TheHeader.vue`)、日付ナビゲーション (`DateNavigator.vue`) の実装。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「UIとデータ表示」、`docs/designDocs/frontend/00_frontend_design.md` の「7. コンポーネント設計」、「8. ルーティング」、`docs/specificationDocs/03_main_ui.md`。
 
-### フェーズ2: Googleカレンダー連携と実績管理
+   1. `docs/requirements-definition.md` を読む
+       * 目的: アプリケーション全体の目的、ターゲットユーザー、解決したい課題を理解します。
+       * 確認事項: ユーザー認証がなぜ必要なのか、どのようなユーザー体験を目指しているのかを大まかに掴みます。
 
-アプリの核となる「予定」と「実績」の管理機能を実装します。
+  Step 2: ログイン画面の具体的な仕様の確認
 
-1.  **Googleカレンダー連携 (バックエンド)**:
-    - Google Calendar APIとの連携ロジック (`google_calendar_service.rb`)。
-    - 予定の取得APIエンドポイントの実装。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「Googleカレンダー連携」、`docs/designDocs/backend/00_backend_design.md` の「4. ディレクトリ構成」、`docs/specificationDocs/02_calendar_integration.md`。
-2.  **Googleカレンダー連携 (フロントエンド)**:
-    - 予定の表示 (`PlanColumn.vue`)。
-    - `calendar.js` ストアでの予定データ管理。
-    - **参照ドキュメント**: `docs/designDocs/frontend/00_frontend_design.md` の「6. 状態管理 (Pinia)」、「7. コンポーネント設計」、`docs/specificationDocs/02_calendar_integration.md`。
-3.  **実績管理 (バックエンド)**:
-    - `Actual` モデル、`Category` モデルの作成。
-    - 実績、カテゴリのCRUD APIエンドポイントの実装。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「実績管理」、`docs/designDocs/backend/00_backend_design.md` の「4. ディレクトリ構成」、「7. データベーススキーマ」、`docs/specificationDocs/04_actual_record_management.md`。
-4.  **実績管理 (フロントエンド)**:
-    - 実績の表示 (`ActualColumn.vue`)。
-    - 実績入力モーダル (`ActualFormModal.vue`) の実装 (ドラッグ＆ドロップ、15分単位入力)。
-    - カテゴリ管理UI。
-    - **参照ドキュメント**: `docs/designDocs/frontend/00_frontend_design.md` の「7. コンポーネント設計」、`docs/specificationDocs/04_actual_record_management.md`。
+  次に、実装するログイン画面が満たすべき具体的な要件を正確に把握します。
 
-### フェーズ3: 分析ダッシュボードとAIフィードバック
 
-データの可視化とAIによるインサイト提供機能を実装します。
+   1. `docs/specificationDocs/01_user_authentication.md` を熟読する
+       * 目的: ユーザー認証機能に関する仕様を詳細に理解します。
+       * 確認事項:
+           * 入力項目: メールアドレス、パスワードなど、必要な入力フィールドは何か。
+           * バリデーション: 各入力項目に求められる検証ルール（例: メールアドレスの形式、パスワードの最低文字数）。
+           * 画面遷移: ログイン成功時、失敗時にどの画面に遷移するのか。
+           * エラーハンドリング: エラー発生時に表示するメッセージの内容とタイミング。
+           * その他: 「パスワードを忘れた場合」のリンクの有無など、画面に含まれるべき全てのUI要素。
 
-1.  **分析ダッシュボード (バックエンド)**:
-    - 各種グラフデータ（カテゴリ別時間配分、日別活動時間推移、生産性指標トレンド、予定vs実績）集計APIの実装。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「分析・レポート機能」、`docs/specificationDocs/05_analysis_dashboard.md`。
-2.  **分析ダッシュボード (フロントエンド)**:
-    - `DashboardView.vue` の作成。
-    - 各種グラフコンポーネント (`CategoryPieChart.vue`, `ActivityBarChart.vue` など) の実装。
-    - **参照ドキュメント**: `docs/designDocs/frontend/00_frontend_design.md` の「7. コンポーネント設計」、「8. ルーティング」、`docs/specificationDocs/05_analysis_dashboard.md`。
-3.  **AIフィードバック (バックエンド)**:
-    - Gemini API連携ロジック (`ai_feedback_service.rb`)。
-    - 1日の振り返りAIフィードバックAPIの実装。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「AI分析機能」、`docs/designDocs/backend/00_backend_design.md` の「4. ディレクトリ構成」、`docs/specificationDocs/06_ai_feedback.md`。
-4.  **AIフィードバック (フロントエンド)**:
-    - 「今日の振り返り(AI)」ボタンの実装。
-    - AIフィードバック結果の表示UI。
-    - **参照ドキュメント**: `docs/specificationDocs/06_ai_feedback.md`。
 
-### フェーズ4: 週次目標管理機能
+   2. `docs/specificationDocs/00_basic_design.md` を確認する
+       * 目的: アプリ全体のデザイン原則やUIのトンマナを理解します。
+       * 確認事項: フォント、カラーパレット、ボタンのデザインなど、ログイン画面のUIを作成する上で準拠すべきデザインガイドライン。
 
-ユーザーが週次目標を設定し、進捗を記録・振り返る機能を実装します。
+  Step 3: 技術的な設計の理解
 
-1.  **週次目標管理 (バックエンド)**:
-    - `WeeklyGoal` モデル、`WeeklyGoalProgress` モデルの作成。
-    - 週次目標、進捗のCRUD APIエンドポイントの実装。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「週次目標管理」、`docs/designDocs/backend/00_backend_design.md` の「3.1. 週次目標管理API」、「7. データベーススキーマ」、`docs/specificationDocs/08_weekly_goal_management.md`。
-2.  **週次目標管理 (フロントエンド)**:
-    - `weeklyGoals.js` ストアの作成。
-    - 週次目標設定モーダル (`WeeklyGoalSettingModal.vue`) の実装。
-    - 実績入力モーダルへの進捗記入欄追加。
-    - 週次振り返り画面 (`WeeklyReviewView.vue`) の実装。
-    - 週次振り返りAIフィードバック連携。
-    - **参照ドキュメント**: `docs/designDocs/frontend/00_frontend_design.md` の「6. 状態管理 (Pinia)」、「7. コンポーネント設計」、「8. ルーティング」、`docs/specificationDocs/08_weekly_goal_management.md`。
 
-### フェーズ5: 全体テストと品質向上、デプロイ準備
+  仕様を理解したら、それをどのように技術的に実現するのかを設計書で確認します。
 
-全ての機能が実装された後、総合的なテストと品質向上を行います。
 
-1.  **結合テスト**:
-    - フロントエンドとバックエンドを連携させた状態での結合テストを実施し、エンドツーエンドの動作を確認します。
-2.  **UI/UXの調整**:
-    - ユーザーがスムーズに機能を利用できるよう、UIの微調整やアニメーションの追加などを行います。
-    - **参照ドキュメント**: 各仕様書の「UI/UX考慮事項」セクション。
-3.  **パフォーマンス最適化**:
-    - 必要に応じて、APIの応答速度やUIの描画速度の最適化を行います。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「パフォーマンス」。
-4.  **セキュリティレビュー**:
-    - 脆弱性がないか確認し、必要な対策を講じます。
-    - **参照ドキュメント**: `docs/requirements-definition.md` の「セキュリティ」。
-5.  **コードレビューとリファクタリング**:
-    - コードの品質を確保するため、レビューとリファクタリングを実施します。
-6.  **デプロイ準備**:
-    - 本番環境へのデプロイ手順の確立、環境変数の設定など。
-    - **参照ドキュメント**: `docs/designDocs/frontend/00_frontend_design.md` の「4. ビルドとデプロイ」。
+   1. `docs/designDocs/01_user_authentication.md` を読む
+       * 目的: ユーザー認証の技術的な実装方法を理解します。
+       * 確認事項:
+           * 認証方式: どのような認証フロー（例: JWT認証、セッションベース認証）を採用しているか。
+           * API設計: ログイン処理のために呼び出すAPIのエンドポイント、リクエストの形式（パラメータ）、レスポンスの形式（成功時、失敗時）。
 
-## ドキュメント参照の重要性
 
-各フェーズ、各タスクにおいて、以下のドキュメントを常に参照し、設計意図や仕様から逸脱しないように注意してください。
+   2. `docs/designDocs/frontend/00_frontend_design.md` を読む
+       * 目的: フロントエンド全体のアーキテクチャやルールを理解します。
+       * 確認事項:
+           * 使用フレームワーク/ライブラリ: Vue.jsのバージョン、状態管理（Vuex/Piniaなど）、APIクライアント（axiosなど）の指定。
+           * コンポーネント設計: コンポーネントの粒度や命名規則、ディレクトリ構成。
+           * コーディング規約: GEMINI.md に記載の通り、PugとSASSを用いるルールを再確認します。
 
-- `docs/requirements-definition.md`: アプリケーション全体の目的、機能要件、非機能要件を再確認するため。
-- `docs/designDocs/backend/00_backend_design.md`: バックエンドのアーキテクチャ、API設計、データベーススキーマの詳細を確認するため。
-- `docs/designDocs/frontend/00_frontend_design.md`: フロントエンドのアーキテクチャ、コンポーネント設計、状態管理、ルーティングの詳細を確認するため。
-- `docs/specificationDocs/`: 各機能の具体的な仕様、UI/UX、APIエンドポイント、データ項目などを確認するため。
 
-これらのドキュメントは、開発の「地図」です。迷った時や、実装方針に疑問が生じた際は、必ず立ち返って確認してください。これにより、手戻りを減らし、効率的な開発を実現できます。
+   3. `docs/memo/` ディレクトリを確認する
+       * 目的: 実装に役立つ補足情報を確認します。
+       * 確認事項:
+           * libraries.md: プロジェクトで利用が推奨されているライブラリやそのバージョン。
+           * settings.md: 開発環境で必要な設定（APIのベースURLなど）。
+
+  Step 4: 実装
+
+
+  全てのドキュメントを確認し、理解が完了したら実装を開始します。
+
+
+   1. Vueコンポーネントの作成
+       * GEMINI.md および docs/designDocs/frontend/00_frontend_design.md の規約に従い、ログイン画面のVueコンポーネントを作成します。
+       * テンプレートは Pug、スタイルは SASS を使用してください。
+
+
+   2. UIの実装
+       * docs/specificationDocs/01_user_authentication.md で定義されたUI要素（入力フォーム、ボタンなど）を配置します。
+       * docs/specificationDocs/00_basic_design.md のデザインガイドラインに沿ってスタイリングします。
+
+
+   3. ロジックの実装
+       * ユーザーの入力値をハンドリングし、バリデーションを実装します。
+       * ログインボタン押下時に、docs/designDocs/01_user_authentication.md で定義されたAPIを呼び出す処理を実装します。
+       * APIからのレスポンスに応じて、画面遷移やエラーメッセージの表示処理を実装します。
+
+  Step 5: テスト
+
+
+  実装した機能が仕様通りに動作することを検証します。
+
+
+   1. 手動テスト
+       * 正常系: 正しい認証情報でログインできること、指定の画面に遷移することを確認します。
+       * 異常系:
+           * 間違った認証情報を入力した場合に、適切なエラーメッセージが表示されること。
+           * バリデーションルールに反する入力を行った場合に、エラーが表示されること。
+
+   2. 自動テスト（必要に応じて）
+       * プロジェクトにテストフレームワークが導入されている場合、コンポーネントの単体テストを作成します。
+
+  ---

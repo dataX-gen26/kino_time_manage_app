@@ -11,4 +11,13 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "posts#index"
+
+  namespace :api do
+    namespace :v1 do
+      post "auth/google/callback", to: "auth#google_callback"
+      delete "auth/logout", to: "auth#logout"
+      get "sessions/check", to: "sessions#check"
+      get "csrf_token", to: "csrf_tokens#show"
+    end
+  end
 end

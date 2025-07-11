@@ -31,6 +31,7 @@ gem "rswag"
 gem "vite_rails", "~> 3.0.8"
 # Use sidekiq for background processing
 gem "sidekiq", "~> 7.2.4"
+gem "rack-cors"
 
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
