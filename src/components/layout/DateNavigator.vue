@@ -9,25 +9,26 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import { useCalendarStore } from '@/stores/calendar'
 import { format, addDays } from 'date-fns'
 
-const currentDate = ref(new Date())
+const calendarStore = useCalendarStore()
 
 const formattedDate = computed(() => {
-  return format(currentDate.value, 'yyyy年MM月dd日(EEE)')
+  return format(calendarStore.currentDate, 'yyyy年MM月dd日(EEE)')
 })
 
 const prevDay = () => {
-  currentDate.value = addDays(currentDate.value, -1)
+  calendarStore.changeDate(addDays(calendarStore.currentDate, -1))
 }
 
 const nextDay = () => {
-  currentDate.value = addDays(currentDate.value, 1)
+  calendarStore.changeDate(addDays(calendarStore.currentDate, 1))
 }
 
 const today = () => {
-  currentDate.value = new Date()
+  calendarStore.changeDate(new Date())
 }
 </script>
 
