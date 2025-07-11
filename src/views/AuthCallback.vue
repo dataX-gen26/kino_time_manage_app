@@ -17,7 +17,7 @@ onMounted(async () => {
   if (code) {
     try {
       await authStore.handleAuthCallback(code)
-      router.push('/login/success')
+      router.push('/main')
     } catch (error) {
       console.error('Authentication failed:', error)
       router.push('/login/failure')

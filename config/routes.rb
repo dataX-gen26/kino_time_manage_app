@@ -18,6 +18,9 @@ Rails.application.routes.draw do
       delete "auth/logout", to: "auth#logout"
       get "sessions/check", to: "sessions#check"
       get "csrf_token", to: "csrf_tokens#show"
+      get "calendar/events", to: "calendar#events"
+      resources :actuals
+      resources :categories
     end
   end
 end

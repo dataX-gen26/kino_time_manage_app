@@ -32,6 +32,7 @@ gem "vite_rails", "~> 3.0.8"
 # Use sidekiq for background processing
 gem "sidekiq", "~> 7.2.4"
 gem "rack-cors"
+gem "google-api-client", "~> 0.53.0"
 
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
