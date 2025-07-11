@@ -5,13 +5,14 @@
     .plan-column-wrapper
       h3 予定 (Plan)
       PlanColumn
-    .actual-column
+    .actual-column-wrapper
       h3 実績 (Actual)
-      //- ActualColumn コンポーネントをここに配置
+      ActualColumn
 </template>
 
 <script setup>
 import PlanColumn from '@/components/specific/PlanColumn.vue'
+import ActualColumn from '@/components/specific/ActualColumn.vue'
 </script>
 
 <style lang="sass" scoped>
@@ -36,7 +37,7 @@ import PlanColumn from '@/components/specific/PlanColumn.vue'
       border-bottom: none
 
 .plan-column-wrapper,
-.actual-column
+.actual-column-wrapper
   border: 1px solid #eee
   padding: 10px
   h3

@@ -15,6 +15,7 @@ const calendarStore = useCalendarStore()
 
 onMounted(() => {
   calendarStore.fetchEvents(calendarStore.currentDate)
+  calendarStore.fetchActuals(calendarStore.currentDate)
 })
 </script>
 
